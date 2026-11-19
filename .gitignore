@@ -1,0 +1,15 @@
+# 构建产物
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# 发布文件
+*.exe
+*.pdb
+release/
+
+# 系统
+.DS_Store
+Thumbs.db
