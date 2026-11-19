@@ -175,7 +175,8 @@ public sealed class SetupPage : IPage
             UiKit.Label("PCLGE 1.00 · C# / WPF 完整版"),
             UiKit.Label("原版游戏下载 · 四种模组加载器 · Modrinth 商城 · 皮肤 · 局域网联机 · 崩溃分析"),
             UiKit.Note("配置文件：" + Config.ConfigFile),
-            UiKit.Note("日志文件：" + Path.Combine(Config.LogDir, "latest.log"),
+            UiKit.Note("日志文件：" + Path.Combine(Config.LogDir, "latest.log"))),
+            UiKit.Note("游戏目录：" + Config.GameDir),
             UiKit.Row(
                 UiKit.PrimaryButton("打开 GitHub 仓库", (_, _) =>
                     MainWindow.OpenUrl("https://github.com/sss2443/PCLGE2-releases")),
