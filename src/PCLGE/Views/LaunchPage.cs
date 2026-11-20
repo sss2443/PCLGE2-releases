@@ -23,7 +23,9 @@ public sealed class LaunchPage : IPage
     {
         Content = "版本隔离（每个版本独立存档与 mods）",
         IsChecked = Config.Isolation,
-        Margin = new Thickness(0, 4, 0, 4)
+        Margin = new Thickness(0, 4, 0, 4),
+        FontFamily = UiKit.Font,
+        FontSize = 13
     };
     private readonly Button _launchButton = UiKit.PrimaryButton("启动游戏", (_, _) => { });
     private readonly Button _killButton = UiKit.Button("结束游戏", (_, _) => { });
@@ -251,7 +253,9 @@ public sealed class LaunchPage : IPage
             Height = 170,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             ResizeMode = ResizeMode.NoResize,
-            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xF4, 0xF6, 0xF9))
+            Background = UiKit.PageBg,
+            FontFamily = UiKit.Font,
+            FontSize = 13
         };
         var stack = new StackPanel { Margin = new Thickness(18) };
         stack.Children.Add(UiKit.Label(label));

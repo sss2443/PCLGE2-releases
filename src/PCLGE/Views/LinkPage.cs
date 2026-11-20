@@ -23,8 +23,10 @@ public sealed class LinkPage : IPage
         Height = 380,
         FontFamily = UiKit.Mono,
         FontSize = 12,
-        Background = new SolidColorBrush(Color.FromRgb(0x1E, 0x1E, 0x1E)),
-        Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0xE8, 0xE8)),
+        Background = Brushes.White,
+        Foreground = UiKit.TextDark,
+        BorderBrush = UiKit.Line,
+        BorderThickness = new Thickness(1),
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
         Padding = new Thickness(8)
     };
@@ -75,7 +77,7 @@ public sealed class LinkPage : IPage
         left.Children.Add(UiKit.Note("UDP " + LanChat.DefaultPort + " 局域网广播"));
         left.Children.Add(UiKit.Label("在线玩家"));
         left.Children.Add(_peers);
-        left.Children.Add(new Separator { Margin = new Thickness(0, 8, 0, 8) });
+        left.Children.Add(UiKit.SeparatorLine());
         left.Children.Add(UiKit.Note("同一局域网内的 PCLGE 会自动互相发现；异地联机可以用 EasyTier / ZeroTier 组一个虚拟局域网，再在这里聊天。"));
         left.Children.Add(UiKit.Button("打开 EasyTier 官网", (_, _) => MainWindow.OpenUrl("https://easytier.cn/")));
 
