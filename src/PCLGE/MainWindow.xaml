@@ -2,8 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="PCLGE" Height="760" Width="1160" MinHeight="620" MinWidth="980"
-        Background="#F4F6F9" WindowStartupLocation="CenterScreen"
-        TextOptions.TextFormattingMode="Display">
+        Background="#FDFDFD" WindowStartupLocation="CenterScreen"
+        FontFamily="Microsoft YaHei UI" FontSize="13"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True">
     <Grid x:Name="RootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
