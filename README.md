@@ -1,6 +1,6 @@
 # PCLGE 2 · PCLGE 1.00（C# / WPF 完整版）
 
-PCLGE 是一个用 **C# / .NET 10 + WPF** 写的《我的世界》启动器，界面结构对齐原版 PCL：顶部六个一级导航（**启动 / 基岩版 / 下载 / 设置 / 工具 / 联机**），每页左列表 + 右内容，底部常驻运行日志与状态栏。
+PCLGE 是一个用 **C# / .NET 10 + WPF** 写的《我的世界》启动器，界面结构对齐 PCL：顶部六个一级导航（**启动 / 基岩版 / 下载 / 设置 / 工具 / 联机**），每页左列表 + 右内容，底部常驻运行日志与状态栏。界面配色与控件规格取自 **PCL CE**。
 
 > 本仓库是发布版（releases）：源码 + 编译好的单文件 exe。
 
@@ -17,8 +17,6 @@ PCLGE 是一个用 **C# / .NET 10 + WPF** 写的《我的世界》启动器，�
 ### 下载
 - 原版游戏：BMCLAPI 镜像 / Mojang 官方源切换，按正式版 / 快照 / 关键词过滤
 - 模组加载器：**Fabric / Quilt / Forge / NeoForge / OptiFine**
-  - Fabric / Quilt 生成 profile JSON
-  - Forge / NeoForge 调用官方 installer `--installClient`
 - Modrinth：模组、资源包、光影、整合包搜索（按 MC 版本 + 加载器筛选）
 - 整合包按 `modrinth.index.json` 逐文件下载，并解压 `overrides/`
 - 已安装管理：查看详情、修复重装、删除版本、打开目录
@@ -28,23 +26,36 @@ PCLGE 是一个用 **C# / .NET 10 + WPF** 写的《我的世界》启动器，�
 - Java 扫描（JAVA_HOME / PATH / Program Files 各发行版）+ 手动指定 + 设为默认
 - 下载源、并发线程、清理 `.tmp` 残留
 - 版本管理：模组启用 / 禁用 / 添加 / 删除，资源包、存档备份与删除
-- 关于页：配置文件、日志位置、仓库链接
 
 ### 工具
-- **皮肤**：LittleSkin 下载（用户名 → UUID → textures → png）、本地 PNG 导入、应用到实例、预览
-- **成就图**：生成 320×64 原版成就弹窗风格 PNG（可预览、可保存到桌面）
-- **崩溃分析**：读取 `crash-reports/*.txt` 与 `logs/latest.log`，匹配 15 类常见原因（内存不足、Java 版本、缺少前置、模组冲突、显卡驱动、权限等），给出处理办法，支持导出报告
+- **皮肤**：LittleSkin 下载、本地 PNG 导入、应用到实例、预览
+- **成就图**：生成 320×64 原版成就弹窗风格 PNG
+- **崩溃分析**：读取 `crash-reports/*.txt` 与 `logs/latest.log`，匹配 15 类常见原因，支持导出报告
 - **日志**：启动器日志实时展示、落盘、清空、打开游戏日志
 
 ### 联机
 - UDP 25567 局域网广播聊天：`[CHAT]昵称||消息`、`[PING]`、`[BYE]`
-- 在线玩家列表、心跳、端口可改、同机多开（同时发回环）
-- 异地联机可用 EasyTier / ZeroTier 组虚拟局域网
+- 在线玩家列表、心跳、端口可改、同机多开
 
 ### 基岩版
 - 从官网解析 Windows 版 BDS 下载地址并下载解压
 - 关联已有 BDS 目录、启动 / 停止服务端、实时输出日志
 - `server.properties` 读取 / 编辑 / 端口写入
+
+## 界面
+
+界面不是自绘的，配色、字号、圆角、间距全部取自 **PCL CE**（PCL Community Edition，Apache-2.0）的实现：
+
+| 项目 | 来源 | 取值 |
+|---|---|---|
+| 主题色 / 灰度 | `PCL.Core/UI/Theme/ToneProfile.cs` + `ThemeService.GetCurrentThemeArgs()`（CatBlue 明色） | 由 OKLCH 换算为 sRGB：ColorBrush1 `#323B47`、ColorBrush2 `#1662B6`、ColorBrush3 `#2078DA`、ColorBrush4 `#5291DF`、ColorBrush7 `#E1ECFA`、Gray3 `#797979`、Gray6 `#E4E4E4`、Gray7 `#EBEBEB`、Gray8 `#F2F2F2`、Background `#FDFDFD` |
+| 正文 / 提示字号 | `PCL.Launcher/UI/Styles/PageStyles.axaml` | 正文 13、提示 12、页标题 20 SemiBold |
+| 卡片 | 同上（`Border.Card`） | 圆角 5、内边距 13/11、阴影 `0 0 3 0 #12000000` |
+| 按钮 | 同上（`Button` / `MyButton`） | 圆角 4、内边距 14,6；主按钮 ColorBrush3 底白字、悬停 ColorBrush4；次按钮半透明白底 + 1px ColorBrush1 描边 |
+| 列表项 | 同上（`Border.PageListItem`） | 圆角 6、内边距 8,6、悬停 ColorBrush8、选中 ColorBrush7 |
+| 字体 | 同上（`LaunchFontFamily`） | Microsoft YaHei UI |
+
+PCL CE 本身是 Avalonia 项目、样式文件是 `.axaml`；本项目是 WPF，所以没有直接复用它的控件，而是按上表的实测值在 WPF 里复刻同样的观感（圆角、描边、半透明白、悬停/选中色一一对应）。相关实现集中在 `src/PCLGE/Ui/UiKit.cs` 与 `MainWindow.xaml(.cs)`。
 
 ## 目录结构
 
@@ -52,14 +63,14 @@ PCLGE 是一个用 **C# / .NET 10 + WPF** 写的《我的世界》启动器，�
 src/PCLGE/
 ├─ App.xaml / App.xaml.cs          应用入口与全局异常捕获
 ├─ MainWindow.xaml(.cs)            顶部导航 + 页面容器 + 日志/状态栏
-├─ Ui/UiKit.cs                     卡片、按钮、双栏布局等界面零件
+├─ Ui/UiKit.cs                     PCL CE 配色 / 卡片 / 按钮 / 列表样式
 ├─ Views/
 │  ├─ LaunchPage.cs                启动
 │  ├─ BedrockPage.cs               基岩版
 │  ├─ DownloadPage.cs              下载
 │  ├─ SetupPage.cs                 设置
 │  ├─ ToolsPage.cs                 工具
-│  └─ LinkPage.cs                 联机
+│  └─ LinkPage.cs                  联机
 └─ Core/
    ├─ Config.cs                     ini 配置与目录
    ├─ Net.cs                        HTTP / 下载
@@ -108,11 +119,16 @@ dotnet publish -c Release -r win-x64
 
 ## 已知限制
 
-- 只有 Windows 版（WPF）；界面未做深色主题 / 动画 / 自定义背景。
+- 只有 Windows 版（WPF）；尚未做深色主题 / 背景图 / 页面动画。
+- 界面按 PCL CE 的配色与度量在 WPF 上复刻，并非 Avalonia 原版控件。
 - 只支持离线账户登录，没有微软正版登录。
 - 皮肤在离线环境下不会自动生效，需要游戏内离线皮肤模组。
 - Forge / NeoForge / OptiFine 安装依赖官方 installer，需要本机已有可用 Java。
 - 未做自动更新检查。
+
+## 致谢
+
+界面配色、字号、圆角与间距参考 [PCL-Community/PCL-CE](https://github.com/PCL-Community/PCL-CE)（Apache-2.0）。
 
 ## 声明
 
