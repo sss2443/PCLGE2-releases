@@ -23,18 +23,30 @@ public partial class MainWindow : Window
         Height = 72,
         FontFamily = UiKit.Mono,
         FontSize = 12,
+        Foreground = UiKit.TextDark,
         BorderThickness = new Thickness(0),
-        Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xF9, 0xFB)),
+        Background = UiKit.SunkenBg,
+        Padding = new Thickness(10, 4, 10, 4),
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto
     };
 
-    private readonly TextBlock _statusText = new() { Text = "就绪", VerticalAlignment = VerticalAlignment.Center, FontSize = 12 };
+    private readonly TextBlock _statusText = new()
+    {
+        Text = "就绪",
+        VerticalAlignment = VerticalAlignment.Center,
+        FontFamily = UiKit.Font,
+        FontSize = 12,
+        Foreground = UiKit.TextDark
+    };
     private readonly ProgressBar _progress = new()
     {
-        Height = 6,
+        Height = 5,
         Width = 220,
         Margin = new Thickness(12, 0, 0, 0),
         VerticalAlignment = VerticalAlignment.Center,
+        Foreground = UiKit.Primary,
+        Background = UiKit.Line,
+        BorderThickness = new Thickness(0),
         Visibility = Visibility.Collapsed
     };
 
@@ -78,50 +90,53 @@ public partial class MainWindow : Window
 
     private void BuildShell()
     {
-        // ---- 顶栏 ----
-        var top = new Border
-        {
-            Background = new LinearGradientBrush(Color.FromRgb(0x27, 0x3A, 0x4C), Color.FromRgb(0x33, 0x4E, 0x66), 0),
-            Padding = new Thickness(14, 8, 14, 8)
-        };
-        var topGrid = new Grid();
-        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        topGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        // ---- 顶栏：白底 + Gray6 下边线，左侧 PCL 字标，右侧六个导航（PCL 的按钮底色取 Gray7，选中取 ColorBrush3）----
+        var topContent = new Grid();
+        topContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        topContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        topContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var brand = new StackPanel { Orientation = Orientation.Horizontal };
+        var brand = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 18, 0)
+        };
         brand.Children.Add(new TextBlock
         {
             Text = "PCL",
-            FontSize = 22,
+            FontFamily = UiKit.Font,
+            FontSize = 21,
             FontWeight = FontWeights.Bold,
-            Foreground = Brushes.White,
+            Foreground = UiKit.TextDark,
             VerticalAlignment = VerticalAlignment.Center
         });
         brand.Children.Add(new Border
         {
-            Background = Brushes.White,
+            Background = UiKit.Primary,
             CornerRadius = new CornerRadius(3),
-            Padding = new Thickness(4, 0, 4, 0),
-            Margin = new Thickness(1, 0, 0, 0),
+            Padding = new Thickness(4, 1, 4, 1),
+            Margin = new Thickness(2, 0, 0, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Child = new TextBlock
             {
                 Text = "GE",
-                FontSize = 18,
+                FontFamily = UiKit.Font,
+                FontSize = 17,
                 FontWeight = FontWeights.Bold,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x27, 0x3A, 0x4C))
+                Foreground = Brushes.White
             }
         });
         brand.Children.Add(new TextBlock
         {
             Text = "1.00",
-            Foreground = new SolidColorBrush(Color.FromRgb(0xBF, 0xDA, 0xEE)),
+            FontFamily = UiKit.Font,
             FontSize = 12,
-            Margin = new Thickness(10, 6, 0, 0),
+            Foreground = UiKit.Muted,
+            Margin = new Thickness(9, 7, 0, 0),
             VerticalAlignment = VerticalAlignment.Center
         });
-        topGrid.Children.Add(brand);
+        topContent.Children.Add(brand);
 
         var nav = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
         for (var i = 0; i < _titles.Length; i++)
@@ -129,14 +144,17 @@ public partial class MainWindow : Window
             var button = new Button
             {
                 Content = _titles[i],
-                Foreground = new SolidColorBrush(Color.FromRgb(0xCF, 0xE3, 0xF2)),
-                Background = Brushes.Transparent,
+                FontFamily = UiKit.Font,
+                FontSize = 13,
+                Foreground = UiKit.TextDark,
+                Background = UiKit.PanelBg,
                 BorderThickness = new Thickness(0),
                 Padding = new Thickness(18, 6, 18, 6),
-                Margin = new Thickness(4, 0, 4, 0),
-                MinWidth = 64,
-                FontSize = 14,
-                Cursor = System.Windows.Input.Cursors.Hand
+                Margin = new Thickness(5, 0, 0, 0),
+                MinWidth = 62,
+                Height = 30,
+                Cursor = System.Windows.Input.Cursors.Hand,
+                Template = NavButtonTemplate()
             };
             var index = i;
             button.Click += (_, _) => ShowPage(index);
@@ -144,13 +162,21 @@ public partial class MainWindow : Window
             nav.Children.Add(button);
         }
         Grid.SetColumn(nav, 2);
-        topGrid.Children.Add(nav);
-        top.Child = topGrid;
+        topContent.Children.Add(nav);
+
+        var top = new Border
+        {
+            Background = Brushes.White,
+            BorderBrush = UiKit.Line,
+            BorderThickness = new Thickness(0, 0, 0, 1),
+            Padding = new Thickness(14, 7, 14, 7),
+            Child = topContent
+        };
         Grid.SetRow(top, 0);
         RootGrid.Children.Add(top);
 
         // ---- 页面容器 ----
-        var host = new Grid();
+        var host = new Grid { Background = UiKit.PageBg };
         for (var i = 0; i < _titles.Length; i++)
         {
             _pages[i] = _pageImpl[i].Build();
@@ -160,17 +186,22 @@ public partial class MainWindow : Window
         Grid.SetRow(host, 1);
         RootGrid.Children.Add(host);
 
-        // ---- 底栏 ----
+        // ---- 底栏：Gray8 日志区 + Gray7 状态栏 ----
         var bottom = new StackPanel();
-        bottom.Children.Add(_logBox);
-        var statusRow = new DockPanel
+        var logBorder = new Border
         {
-            Background = new SolidColorBrush(Color.FromRgb(0xEF, 0xF2, 0xF6)),
-            Height = 26
+            Background = UiKit.SunkenBg,
+            BorderBrush = UiKit.Line,
+            BorderThickness = new Thickness(0, 1, 0, 0),
+            Child = _logBox
         };
+        bottom.Children.Add(logBorder);
+
+        var statusRow = new DockPanel { Background = UiKit.PanelBg, Height = 26 };
         var versionText = new TextBlock
         {
-            Text = "PCLGE 1.00 · C# / WPF",
+            Text = "PCLGE 1.00 · C# / WPF · 界面取自 PCL CE",
+            FontFamily = UiKit.Font,
             FontSize = 12,
             Foreground = UiKit.Muted,
             VerticalAlignment = VerticalAlignment.Center,
@@ -182,6 +213,7 @@ public partial class MainWindow : Window
         statusLeft.Children.Add(new TextBlock
         {
             Text = "状态：",
+            FontFamily = UiKit.Font,
             FontSize = 12,
             Foreground = UiKit.Muted,
             VerticalAlignment = VerticalAlignment.Center,
@@ -195,6 +227,26 @@ public partial class MainWindow : Window
         RootGrid.Children.Add(bottom);
     }
 
+    /// <summary>导航按钮模板：圆角 3；未选中 Gray7 底 + 悬停 Gray6，选中 ColorBrush3 底 + 悬停 ColorBrush4。</summary>
+    private static ControlTemplate NavButtonTemplate(bool selected = false)
+    {
+        var template = new ControlTemplate(typeof(Button));
+        var root = new FrameworkElementFactory(typeof(Border), "PART_Bg");
+        root.SetValue(Border.CornerRadiusProperty, new CornerRadius(3));
+        root.SetValue(Border.BackgroundProperty, selected ? UiKit.Primary : UiKit.PanelBg);
+        var presenter = new FrameworkElementFactory(typeof(ContentPresenter));
+        presenter.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        presenter.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        root.AppendChild(presenter);
+        template.VisualTree = root;
+
+        var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+        hover.Setters.Add(new Setter(Border.BackgroundProperty,
+            selected ? UiKit.PrimaryHover : UiKit.Line, "PART_Bg"));
+        template.Triggers.Add(hover);
+        return template;
+    }
+
     private void ShowPage(int index)
     {
         if (index < 0 || index >= _pages.Length) return;
@@ -205,8 +257,8 @@ public partial class MainWindow : Window
             _pages[i].Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
             _pages[i].IsHitTestVisible = visible;
             if (visible) Panel.SetZIndex(_pages[i], 2);
-            _navButtons[i].Background = visible ? UiKit.Primary : Brushes.Transparent;
-            _navButtons[i].Foreground = visible ? Brushes.White : new SolidColorBrush(Color.FromRgb(0xCF, 0xE3, 0xF2));
+            _navButtons[i].Template = NavButtonTemplate(visible);
+            _navButtons[i].Foreground = visible ? Brushes.White : UiKit.TextDark;
         }
         _current = index;
         try { _pageImpl[index].Refresh(); }
