@@ -18,6 +18,8 @@ public sealed class SetupPage : IPage
     private readonly CheckBox _isolation = new() { Content = "版本隔离（每个版本独立 mods / 存档 / 配置）", Margin = new Thickness(0, 4, 0, 4) };
     private readonly CheckBox _fileLog = new() { Content = "把启动日志写入文件", Margin = new Thickness(0, 4, 0, 4) };
 
+    private readonly ComboBox _font = UiKit.Combo(200);
+
     private readonly ListBox _javaList = UiKit.List(220);
     private readonly TextBlock _javaInfo = UiKit.Note("");
 
@@ -79,6 +81,14 @@ public sealed class SetupPage : IPage
         }));
         panel.Children.Add(UiKit.Card("启动", memoryRow, _isolation, _fileLog));
 
+        _font.Items.Add("Minecraft 像素字体（内嵌）");
+        _font.Items.Add("微软雅黑（默认中文界面）");
+        _font.SelectedIndex = string.Equals(Config.Get("uiFont", "minecraft"), "yahei", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        panel.Children.Add(UiKit.Card("界面字体",
+            UiKit.Row(UiKit.Label("字体"), _font, UiKit.Button("应用", (_, _) => ApplyFont())),
+            UiKit.Note("像素字体来自 Minecraft_Next_Font_12px2.0.ttf，已内嵌进程序；它没有中文字形，中文自动回退到微软雅黑。"),
+            UiKit.Note("切换后重启 PCLGE 才会整套界面生效。")));
+
         panel.Children.Add(UiKit.Card("存档迁移",
             UiKit.Note("把旧游戏目录 saves 里的世界复制到当前目录（同名跳过，不动原文件）。"),
             UiKit.Button("从旧目录导入存档", (_, _) => ImportSaves())
@@ -90,6 +100,15 @@ public sealed class SetupPage : IPage
         );
         panel.Children.Add(UiKit.Card("维护", maintainRow));
         return UiKit.Scroll(panel);
+    }
+
+    private void ApplyFont()
+    {
+        var yahei = _font.SelectedIndex == 1;
+        Config.Put("uiFont", yahei ? "yahei" : "minecraft");
+        UiKit.Font = yahei ? UiKit.YaHei : UiKit.McFont;
+        _shell.FontFamily = UiKit.Font;
+        _shell.Status("界面字体已切换为" + (yahei ? "微软雅黑" : "Minecraft 像素字体") + "，重启启动器后全部界面生效");
     }
 
     private UIElement BuildJavaPane()
@@ -239,7 +258,7 @@ public sealed class SetupPage : IPage
             return;
         }
         var detail = VersionService.Inspect(id);
-        _instanceInfo.Text = $"{id} · {detail.Loader} · {detail.Type} · {detail.Size / 1048576.0:F1} MB";
+        _instanceInfo.Text = $\"{id} · {detail.Loader} · {detail.Type} · {detail.Size / 1048576.0:F1} MB\";
         _mods.ItemsSource = ModManager.ListMods(id)
             .Select(m => (m.Enabled ? "[开] " : "[关] ") + m.FileName).ToList();
         _packs.ItemsSource = ModManager.ListResourcePacks(id);
