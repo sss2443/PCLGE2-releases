@@ -7,13 +7,16 @@ using Pclge.Ui;
 
 namespace Pclge.Views;
 
-/// <summary>基岩版页：BDS 安装、目录关联、服务端启停与 server.properties 编辑。</summary>
+/// <summary>基岩版页：客户端（UWP）检测/安装/启动，BDS 安装、目录关联、服务端启停与 server.properties 编辑。</summary>
 public sealed class BedrockPage : IPage
 {
     private readonly MainWindow _shell;
     private readonly TextBlock _dirText = UiKit.Label("未关联", UiKit.Muted);
     private readonly TextBlock _stateText = UiKit.Label("未运行", UiKit.Muted);
     private readonly TextBox _port = UiKit.Input("19132", 80);
+    private readonly ListBox _clientList = UiKit.List(150);
+    private readonly TextBlock _clientInfo = UiKit.Note("");
+    private List<BedrockService.ClientInfo> _clients = new();
     private readonly TextBox _props = new()
     {
         AcceptsReturn = true,
@@ -64,14 +67,35 @@ public sealed class BedrockPage : IPage
         help.Children.Add(UiKit.Note("· 外网联机需要路由器端口映射，或使用 EasyTier / 内网穿透。"));
         help.Children.Add(UiKit.Note("· 修改 server.properties 后需要重启服务端才生效。"));
 
+        var client = new StackPanel();
+        client.Children.Add(UiKit.Note("基岩版客户端（Minecraft for Windows）是 UWP 应用，只能从微软商店的正版渠道获取与更新。这里负责检测、安装（winget msstore）、启动。"));
+        client.Children.Add(UiKit.Card("已安装的客户端",
+            _clientList,
+            _clientInfo,
+            UiKit.Row(
+                UiKit.PrimaryButton("重新检测", (_, _) => RefreshClients()),
+                UiKit.Button("启动选中客户端", (_, _) => LaunchClient()))));
+        client.Children.Add(UiKit.Card("安装 / 更新",
+            UiKit.Row(
+                UiKit.PrimaryButton("用 winget 从微软商店安装", (_, _) => InstallClient()),
+                UiKit.Button("打开商店页面", (_, _) => MainWindow.OpenUrl(BedrockService.StorePageUrl)),
+                UiKit.Button("打开商店搜索", (_, _) => MainWindow.OpenUrl(BedrockService.StoreSearchUrl))),
+            UiKit.Note("产品 ID：" + BedrockService.StoreProductId + "。安装 / 更新需要这台电脑已登录微软账户（商店里要有该游戏的授权）。"),
+            UiKit.Note("没有 winget（Windows 10 1809 以前）就用「打开商店页面」手动安装。")));
+        client.Children.Add(UiKit.Card("说明",
+            UiKit.Note("· 客户端与服务端版本要一致，否则进不去服务器。"),
+            UiKit.Note("· 启动器只做官方渠道的检测与安装，不提供绕过商店授权的 appx 直链下载。")));
+
         var tabs = new TabControl { Background = Brushes.White, Padding = new Thickness(4) };
-        tabs.Items.Add(new TabItem { Header = "安装", Content = UiKit.Scroll(install) });
+        tabs.Items.Add(new TabItem { Header = "客户端", Content = UiKit.Scroll(client) });
+        tabs.Items.Add(new TabItem { Header = "服务端", Content = UiKit.Scroll(install) });
         tabs.Items.Add(new TabItem { Header = "管理", Content = UiKit.Scroll(manage) });
         tabs.Items.Add(new TabItem { Header = "帮助", Content = UiKit.Scroll(help) });
 
         var left = new StackPanel();
         left.Children.Add(UiKit.Heading("基岩版"));
-        left.Children.Add(UiKit.Note("BDS = Bedrock Dedicated Server"));
+        left.Children.Add(UiKit.Note("客户端 = Minecraft for Windows（UWP）"));
+        left.Children.Add(UiKit.Note("服务端 = BDS（Bedrock Dedicated Server）"));
         left.Children.Add(UiKit.Label("· 只支持正版玩家进入"));
         left.Children.Add(UiKit.Label("· 版本需与客户端一致"));
         left.Children.Add(UiKit.Label("· 世界文件在 worlds 目录"));
@@ -81,6 +105,7 @@ public sealed class BedrockPage : IPage
 
     public void Refresh()
     {
+        RefreshClients();
         var dir = BedrockService.AssociatedDir;
         _dirText.Text = dir.Length > 0 ? dir : "未关联";
         _stateText.Text = BedrockService.IsRunning ? "运行中，PID " + BedrockService.Current?.Id : "未运行";
@@ -91,6 +116,69 @@ public sealed class BedrockPage : IPage
             var match = System.Text.RegularExpressions.Regex.Match(props, @"server-port=(\d+)");
             if (match.Success) _port.Text = match.Groups[1].Value;
             if (!_props.IsFocused) _props.Text = props;
+        }
+    }
+
+    // ================= 客户端 =================
+    private void RefreshClients()
+    {
+        _clients = BedrockService.DetectClients();
+        _clientList.ItemsSource = _clients.Select(c => c.Display).ToList();
+        if (_clients.Count > 0)
+        {
+            _clientList.SelectedIndex = 0;
+            _clientInfo.Text = "已安装 " + _clients.Count + " 个 · " + _clients[0].Location;
+            _clientInfo.Foreground = UiKit.Ok;
+        }
+        else if (!OperatingSystem.IsWindows())
+        {
+            _clientInfo.Text = "当前系统不是 Windows，无法检测基岩版客户端";
+            _clientInfo.Foreground = UiKit.Muted;
+        }
+        else
+        {
+            _clientInfo.Text = "没有检测到 Minecraft for Windows，可以点「用 winget 从微软商店安装」";
+            _clientInfo.Foreground = UiKit.Warn;
+        }
+    }
+
+    private void InstallClient()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            _shell.Status("只有 Windows 才能安装基岩版客户端");
+            return;
+        }
+        if (MessageBox.Show("将从微软商店安装 / 更新 Minecraft for Windows（产品 ID " + BedrockService.StoreProductId + "）。\n需要本机商店已登录并拥有该游戏的授权。继续？",
+                "PCLGE", MessageBoxButton.OKCancel, MessageBoxImage.Question) != MessageBoxResult.OK) return;
+        _shell.Status("正在从微软商店安装基岩版客户端...");
+        _shell.RunAsync(() =>
+        {
+            var code = BedrockService.InstallClient(s => _shell.Log(s));
+            _shell.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                RefreshClients();
+                _shell.Status(code == 0 ? "基岩版客户端已安装 / 已是最新" : "winget 退出码 " + code + "，请用「打开商店页面」手动安装");
+            }));
+        });
+    }
+
+    private void LaunchClient()
+    {
+        var index = _clientList.SelectedIndex;
+        if (index < 0 || index >= _clients.Count)
+        {
+            _shell.Status("先在上面选一个已安装的客户端");
+            return;
+        }
+        try
+        {
+            BedrockService.LaunchClient(_clients[index]);
+            _shell.Status("正在启动 " + _clients[index].Display);
+        }
+        catch (Exception ex)
+        {
+            _shell.Status("启动失败：" + ex.Message);
         }
     }
 
