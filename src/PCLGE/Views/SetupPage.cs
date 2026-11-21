@@ -237,7 +237,7 @@ public sealed class SetupPage : IPage
         else if (javas.Count > 0) _javaList.SelectedIndex = 0;
         _javaInfo.Text = javas.Count == 0
             ? "没有找到 Java，请手动指定 javaw.exe 路径。"
-            : $"共 {javas.Count} 个 Java，当前使用：{JavaService.Resolve()}";
+            : "共 " + javas.Count + " 个 Java，当前使用：" + JavaService.Resolve();
 
         var installed = VersionService.Installed();
         var currentSelection = _instances.SelectedItem as string;
@@ -258,7 +258,7 @@ public sealed class SetupPage : IPage
             return;
         }
         var detail = VersionService.Inspect(id);
-        _instanceInfo.Text = $\"{id} · {detail.Loader} · {detail.Type} · {detail.Size / 1048576.0:F1} MB\";
+        _instanceInfo.Text = id + " · " + detail.Loader + " · " + detail.Type + " · " + (detail.Size / 1048576.0).ToString("F1") + " MB";
         _mods.ItemsSource = ModManager.ListMods(id)
             .Select(m => (m.Enabled ? "[开] " : "[关] ") + m.FileName).ToList();
         _packs.ItemsSource = ModManager.ListResourcePacks(id);
@@ -297,7 +297,7 @@ public sealed class SetupPage : IPage
             var count = ModManager.ImportSaves(id, source);
             _shell.Dispatcher.BeginInvoke(new Action(() =>
             {
-                _shell.Status($\"已复制 {count} 个世界到 {id}\");
+                _shell.Status("已复制 " + count + " 个世界到 " + id);
                 LoadInstance();
             }));
         });
@@ -316,7 +316,7 @@ public sealed class SetupPage : IPage
                     try { File.Delete(file); count++; } catch { }
                 }
             }
-            _shell.Dispatcher.BeginInvoke(new Action(() => _shell.Status($\"已清理 {count} 个临时文件\")));
+            _shell.Dispatcher.BeginInvoke(new Action(() => _shell.Status("已清理 " + count + " 个临时文件")));
         });
     }
 
@@ -333,7 +333,7 @@ public sealed class SetupPage : IPage
                 try { ModManager.BackupSaves(id, save); count++; } catch { }
             }
             _shell.Dispatcher.BeginInvoke(new Action(() =>
-                _shell.Status($\"已备份 {count} 个存档到 {Path.Combine(Config.LauncherDir, \"backups\")}\")));
+                _shell.Status("已备份 " + count + " 个存档到 " + Path.Combine(Config.LauncherDir, "backups"))));
         });
     }
 
@@ -454,7 +454,7 @@ public sealed class SetupPage : IPage
     {
         var id = CurrentInstance;
         if (id == null || _saves.SelectedItem is not string save) return;
-        if (MessageBox.Show($\"删除存档 {save}？此操作不可恢复。\", \"PCLGE\",
+        if (MessageBox.Show("删除存档 " + save + "？此操作不可恢复。", "PCLGE",
                 MessageBoxButton.OKCancel, MessageBoxImage.Warning) != MessageBoxResult.OK) return;
         try
         {
