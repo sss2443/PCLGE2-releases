@@ -56,6 +56,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        // 界面字体：默认内嵌的 Minecraft 像素字体，可在设置页切回微软雅黑
+        UiKit.Font = string.Equals(Config.Get("uiFont", "minecraft"), "yahei", StringComparison.OrdinalIgnoreCase)
+            ? UiKit.YaHei
+            : UiKit.McFont;
+        FontFamily = UiKit.Font;
         Directory.CreateDirectory(Config.LauncherDir);
         _pageImpl = new IPage[]
         {
