@@ -47,7 +47,28 @@ public static class UiKit
     public static readonly Brush Warn = Brush("#F39C12");          // ColorBrushWarn
     public static readonly Brush Danger = Brush("#E74C3C");         // ColorBrushError
 
-    public static readonly FontFamily Font = new("Microsoft YaHei UI");
+    public static readonly FontFamily YaHei = new global::System.Windows.Media.FontFamily("Microsoft YaHei UI");
+    /// <summary>Minecraft_Next_Font_12px2.0（随程序内嵌，缺少的中文字形自动回退到雅黑）。</summary>
+    public static readonly FontFamily McFont = LoadMinecraftFont();
+
+    /// <summary>加载内嵌的 Minecraft 字体；资源缺失（例如只拉源码没放 ttf）时回退雅黑。</summary>
+    private static FontFamily LoadMinecraftFont()
+    {
+        try
+        {
+            var res = new Uri("pack://application:,,,/Assets/Fonts/MinecraftNext.ttf");
+            if (global::System.Windows.Application.GetResourceStream(res) == null) return YaHei;
+            return new global::System.Windows.Media.FontFamily(new Uri("pack://application:,,,/"),
+                "./Assets/Fonts/MinecraftNext.ttf#Minecraft Next Font");
+        }
+        catch
+        {
+            return YaHei;
+        }
+    }
+
+    /// <summary>当前界面字体，启动时按配置设置。</summary>
+    public static global::System.Windows.Media.FontFamily Font { get; set; } = YaHei;
     public static readonly FontFamily Mono = new("Consolas");
 
     // ---- 度量（PageStyles.axaml）----
