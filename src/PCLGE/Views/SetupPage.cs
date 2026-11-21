@@ -297,7 +297,7 @@ public sealed class SetupPage : IPage
             var count = ModManager.ImportSaves(id, source);
             _shell.Dispatcher.BeginInvoke(new Action(() =>
             {
-                _shell.Status($"已复制 {count} 个世界到 {id}");
+                _shell.Status($\"已复制 {count} 个世界到 {id}\");
                 LoadInstance();
             }));
         });
@@ -316,7 +316,7 @@ public sealed class SetupPage : IPage
                     try { File.Delete(file); count++; } catch { }
                 }
             }
-            _shell.Dispatcher.BeginInvoke(new Action(() => _shell.Status($"已清理 {count} 个临时文件")));
+            _shell.Dispatcher.BeginInvoke(new Action(() => _shell.Status($\"已清理 {count} 个临时文件\")));
         });
     }
 
@@ -333,7 +333,7 @@ public sealed class SetupPage : IPage
                 try { ModManager.BackupSaves(id, save); count++; } catch { }
             }
             _shell.Dispatcher.BeginInvoke(new Action(() =>
-                _shell.Status($"已备份 {count} 个存档到 {Path.Combine(Config.LauncherDir, "backups")}")));
+                _shell.Status($\"已备份 {count} 个存档到 {Path.Combine(Config.LauncherDir, \"backups\")}\")));
         });
     }
 
@@ -454,7 +454,7 @@ public sealed class SetupPage : IPage
     {
         var id = CurrentInstance;
         if (id == null || _saves.SelectedItem is not string save) return;
-        if (MessageBox.Show($"删除存档 {save}？此操作不可恢复。", "PCLGE",
+        if (MessageBox.Show($\"删除存档 {save}？此操作不可恢复。\", \"PCLGE\",
                 MessageBoxButton.OKCancel, MessageBoxImage.Warning) != MessageBoxResult.OK) return;
         try
         {
